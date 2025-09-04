@@ -1,0 +1,1 @@
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; public class Test { public static void main(String[] args) { BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(); System.out.println(encoder.matches("k9CJ2_294!", "$2a$10$EqrD6xBhol7LgDe42wB7AOELMLrc8iIuFUgz0FFEmkqC53FOjFkJ6")); } }

@@ -1,0 +1,95 @@
+# Docker Compose for DeadZone Licensing System
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  deadzone-postgres:
+    image: postgres:15-alpine
+    container_name: deadzone-postgres
+    environment:
+      POSTGRES_DB: deadzone_license
+      POSTGRES_USER: deadzone
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_123}
+    volumes:
+      - deadzone_postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - deadzone-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deadzone -d deadzone_license"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # DeadZone Backend API
+  deadzone-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deadzone-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://deadzone-postgres:5432/deadzone_license
+      DB_USERNAME: deadzone
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-secure_password_123}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secure-jwt-secret-key-that-should-be-at-least-256-bits}
+      JWT_EXPIRATION: 86400000
+      JWT_REFRESH_EXPIRATION: 604800000
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@deadzone.com}
+      CORS_ALLOWED_ORIGINS: https://admin.asluxeco.org,https://api.asluxeco.org
+      SERVER_PORT: 8080
+    depends_on:
+      deadzone-postgres:
+        condition: service_healthy
+    networks:
+      - deadzone-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deadzone-api.rule=Host(`api.asluxeco.org`)"
+      - "traefik.http.routers.deadzone-api.tls=true"
+      - "traefik.http.services.deadzone-api.loadbalancer.server.port=8080"
+
+  # DeadZone Frontend Admin Dashboard
+  deadzone-frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: deadzone-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.asluxeco.org
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      deadzone-backend:
+        condition: service_healthy
+    networks:
+      - deadzone-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deadzone-admin.rule=Host(`admin.asluxeco.org`)"
+      - "traefik.http.routers.deadzone-admin.tls=true"
+      - "traefik.http.services.deadzone-admin.loadbalancer.server.port=3000"
+
+volumes:
+  deadzone_postgres_data:
+    driver: local
+
+networks:
+  deadzone-network:
+    driver: bridge
+    external: false

@@ -1,0 +1,60 @@
+# DeadZone Licensing System - Caddy Configuration
+
+# API Backend
+api.asluxeco.org {
+    reverse_proxy 192.168.0.103:8080 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Health check
+        health_uri /api/health
+        health_interval 30s
+        health_timeout 10s
+    }
+    
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security max-age=31536000;
+        # Prevent MIME type sniffing
+        X-Content-Type-Options nosniff
+        # Prevent clickjacking
+        X-Frame-Options DENY
+        # Enable XSS protection
+        X-XSS-Protection "1; mode=block"
+        # Hide server information
+        -Server
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/api.asluxeco.org.log
+        format json
+    }
+    
+    # Error handling
+    handle_errors {
+        @5xx expression {http.error.status_code} >= 500
+        respond @5xx "Backend service temporarily unavailable" 503
+    }
+}
+
+# Admin Dashboard Frontend
+admin.asluxeco.org {
+    reverse_proxy localhost:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Security headers
+    header {
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.asluxeco.org;"
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        -Server
+    }
+}
