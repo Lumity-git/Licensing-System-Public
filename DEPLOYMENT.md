@@ -9,8 +9,10 @@ This guide will help you deploy the DeadZone Licensing System to your production
 - A server with Ubuntu 20.04+ or similar Linux distribution
 - SSH access to your server (port 2222 in this setup)
 - DNS records pointing to your server:
-  - `api.asluxeco.org` → Your server IP
-  - `admin.asluxeco.org` → Your server IP
+  - `api.your-domain.com` → Your server IP
+  - `admin.your-domain.com` → Your server IP
+
+> ℹ️ Replace placeholder values such as `<SERVER_HOST>` and `<POSTGRES_PASSWORD>` with real deployment details before running the commands below.
 
 ### Step 1: Prepare Your Server
 
@@ -18,10 +20,10 @@ Upload and run the server setup script on your server:
 
 ```bash
 # Upload the setup script to your server
-scp -P 2222 server-setup.sh l@70.120.241.113:/tmp/
+scp -P 2222 server-setup.sh <DEPLOY_USER>@<SERVER_HOST>:/tmp/
 
 # SSH into your server and run the setup
-ssh -p 2222 l@70.120.241.113
+ssh -p 2222 <DEPLOY_USER>@<SERVER_HOST>
 sudo bash /tmp/server-setup.sh
 ```
 
@@ -44,7 +46,7 @@ Edit the `.env` file with your production values:
 
 ```env
 # PostgreSQL Database Configuration
-POSTGRES_PASSWORD=Theseusmccasacastillo7665_
+POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
 
 # JWT Configuration (Generate a secure 256-bit key)
 JWT_SECRET=your-super-secure-jwt-secret-key-that-should-be-at-least-256-bits
@@ -55,7 +57,7 @@ ADMIN_PASSWORD=your_secure_admin_password
 ADMIN_EMAIL=admin@yourdomain.com
 
 # Next.js Configuration
-NEXT_PUBLIC_API_URL=https://api.asluxeco.org
+NEXT_PUBLIC_API_URL=https://api.your-domain.com
 
 # Server Configuration
 SERVER_PORT=8080
@@ -96,21 +98,21 @@ docker save deadzone-license-backend:latest | gzip > dist/deadzone-backend.tar.g
 docker save deadzone-license-frontend:latest | gzip > dist/deadzone-frontend.tar.gz
 
 # Upload to server
-scp -P 2222 -r dist/* root@70.120.241.113:/opt/deadzone-license/
-scp -P 2222 docker-compose.yml root@70.120.241.113:/opt/deadzone-license/
-scp -P 2222 Caddyfile root@70.120.241.113:/opt/deadzone-license/
-scp -P 2222 .env root@70.120.241.113:/opt/deadzone-license/
+scp -P 2222 -r dist/* <SERVER_USER>@<SERVER_HOST>:/opt/deadzone-license/
+scp -P 2222 docker-compose.yml <SERVER_USER>@<SERVER_HOST>:/opt/deadzone-license/
+scp -P 2222 Caddyfile <SERVER_USER>@<SERVER_HOST>:/opt/deadzone-license/
+scp -P 2222 .env <SERVER_USER>@<SERVER_HOST>:/opt/deadzone-license/
 
 # Deploy on server
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker load < deadzone-backend.tar.gz && docker load < deadzone-frontend.tar.gz && docker-compose up -d"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && docker load < deadzone-backend.tar.gz && docker load < deadzone-frontend.tar.gz && docker-compose up -d"
 ```
 
 ## 🌐 Services
 
 After successful deployment, your services will be available at:
 
-- **API Backend**: https://api.asluxeco.org
-- **Admin Dashboard**: https://admin.asluxeco.org
+- **API Backend**: https://api.your-domain.com
+- **Admin Dashboard**: https://admin.your-domain.com
 
 ### API Endpoints
 
@@ -125,26 +127,26 @@ After successful deployment, your services will be available at:
 ### Check Service Status
 
 ```bash
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker-compose ps"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && docker-compose ps"
 ```
 
 ### View Logs
 
 ```bash
 # All services
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker-compose logs -f"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && docker-compose logs -f"
 
 # Specific service
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker-compose logs -f deadzone-backend"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && docker-compose logs -f deadzone-backend"
 
 # Caddy logs
-ssh -p 2222 root@70.120.241.113 "tail -f /var/log/caddy/api.asluxeco.org.log"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "tail -f /var/log/caddy/api.your-domain.com.log"
 ```
 
 ### Restart Services
 
 ```bash
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker-compose restart"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && docker-compose restart"
 ```
 
 ### Update Application
@@ -154,7 +156,7 @@ ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && docker-compose rest
 ./deploy.sh
 
 # Or update manually
-ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && ./update.sh"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "cd /opt/deadzone-license && ./update.sh"
 ```
 
 ## 🔒 Security Features
@@ -175,7 +177,7 @@ ssh -p 2222 root@70.120.241.113 "cd /opt/deadzone-license && ./update.sh"
 ### Database Backup
 
 ```bash
-ssh -p 2222 root@70.120.241.113 "docker exec deadzone-postgres pg_dump -U deadzone deadzone_license > /opt/deadzone-license/backup-$(date +%Y%m%d).sql"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "docker exec deadzone-postgres pg_dump -U deadzone deadzone_license > /opt/deadzone-license/backup-$(date +%Y%m%d).sql"
 ```
 
 ## 🔄 Updates & Maintenance
@@ -193,7 +195,7 @@ Rebuild and redeploy when updating dependencies:
 Caddy automatically renews SSL certificates. Check status:
 
 ```bash
-ssh -p 2222 root@70.120.241.113 "systemctl status caddy"
+ssh -p 2222 <SERVER_USER>@<SERVER_HOST> "systemctl status caddy"
 ```
 
 ## 🆘 Troubleshooting
@@ -215,8 +217,8 @@ docker-compose ps
 docker-compose logs [service-name]
 
 # Test connectivity
-curl -k https://api.asluxeco.org/api/health
-curl -k https://admin.asluxeco.org/api/health
+curl -k https://api.your-domain.com/api/health
+curl -k https://admin.your-domain.com/api/health
 
 # Verify Caddy config
 caddy validate --config /etc/caddy/Caddyfile

@@ -6,11 +6,13 @@
 set -e  # Exit on any error
 
 # Configuration
-SERVER_HOST="70.120.241.113"
-SERVER_PORT="2222"
-SERVER_USER="root"
-REMOTE_PATH="/opt/deadzone-license"
-PROJECT_NAME="deadzone-license"
+SERVER_HOST="${SERVER_HOST:-your.server.address}"
+SERVER_PORT="${SERVER_PORT:-2222}"
+SERVER_USER="${SERVER_USER:-root}"
+REMOTE_PATH="${REMOTE_PATH:-/opt/deadzone-license}"
+PROJECT_NAME="${PROJECT_NAME:-deadzone-license}"
+API_DOMAIN="${API_DOMAIN:-api.your-domain.com}"
+ADMIN_DOMAIN="${ADMIN_DOMAIN:-admin.your-domain.com}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -149,8 +151,8 @@ echo "Checking service health..."
 docker-compose ps
 
 echo "Deployment completed successfully!"
-echo "API: https://api.asluxeco.org"
-echo "Admin: https://admin.asluxeco.org"
+echo "API: https://${API_DOMAIN}"
+echo "Admin: https://${ADMIN_DOMAIN}"
 EOF
 
     chmod +x ./dist/deploy/deploy.sh
@@ -252,8 +254,8 @@ main() {
     echo "========================================"
     echo ""
     echo "Your DeadZone Licensing System is now running:"
-    echo "  🌐 API:   https://api.asluxeco.org"
-    echo "  📱 Admin: https://admin.asluxeco.org"
+    echo "  🌐 API:   https://${API_DOMAIN}"
+    echo "  📱 Admin: https://${ADMIN_DOMAIN}"
     echo ""
     echo "To check the status:"
     echo "  ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST 'cd $REMOTE_PATH && docker-compose ps'"
