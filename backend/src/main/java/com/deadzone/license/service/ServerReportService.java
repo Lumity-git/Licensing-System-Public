@@ -9,6 +9,7 @@ import com.deadzone.license.entity.ServerInstance.PluginStatus;
 import com.deadzone.license.repository.LicenseRepository;
 import com.deadzone.license.repository.ServerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,12 @@ public class ServerReportService {
 
     @Autowired
     private LicenseService licenseService;
+
+    @Value("${app.telemetry.license-server-url:https://api.your-domain.com}")
+    private String licenseServerUrl;
+
+    @Value("${app.telemetry.support-contact:support@example.com}")
+    private String supportContact;
 
     public ServerReportResponse processServerReport(ServerReportRequest request) {
         ServerReportResponse response = new ServerReportResponse();
@@ -252,7 +259,7 @@ public class ServerReportService {
         // Set default reporting interval (5 minutes)
         response.setReportInterval(300L);
         response.setEnableTelemetry(true);
-        response.setLicenseServerUrl("https://api.asluxeco.org");
-        response.setSupportContact("support@asluxeco.org");
+        response.setLicenseServerUrl(licenseServerUrl);
+        response.setSupportContact(supportContact);
     }
 }

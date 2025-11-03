@@ -5,10 +5,10 @@
 # Config
 TARGET_JAR="backend/target/license-backend-1.0.0.jar"
 FRONTEND_BUILD_DIR="frontend/.next"
-REMOTE_USER="l"
-REMOTE_HOST="70.120.241.113"
-REMOTE_PORT="2222"
-REMOTE_DIR="/home/l/Licensing-Updated/"
+REMOTE_USER="${REMOTE_USER:-deploy}"
+REMOTE_HOST="${REMOTE_HOST:-your.server.address}"
+REMOTE_PORT="${REMOTE_PORT:-2222}"
+REMOTE_DIR="${REMOTE_DIR:-/opt/deadzone-license/}"
 
 # Upload backend jar
 if [ -f "$TARGET_JAR" ]; then

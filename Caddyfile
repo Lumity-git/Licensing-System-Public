@@ -1,8 +1,9 @@
 # DeadZone Licensing System - Caddy Configuration
 
 # API Backend
-api.asluxeco.org {
-    reverse_proxy 192.168.0.103:8080 {
+api.your-domain.com {
+    # Replace backend.internal.host with the private address of your API service
+    reverse_proxy backend.internal.host:8080 {
         header_up Host {upstream_hostport}
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
@@ -30,7 +31,7 @@ api.asluxeco.org {
     
     # Logging
     log {
-        output file /var/log/caddy/api.asluxeco.org.log
+        output file /var/log/caddy/api.your-domain.com.log
         format json
     }
     
@@ -42,7 +43,7 @@ api.asluxeco.org {
 }
 
 # Admin Dashboard Frontend
-admin.asluxeco.org {
+admin.your-domain.com {
     reverse_proxy localhost:3000 {
         header_up Host {host}
         header_up X-Real-IP {remote_host}
@@ -52,7 +53,7 @@ admin.asluxeco.org {
     
     # Security headers
     header {
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.asluxeco.org;"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.your-domain.com;"
         X-Frame-Options "SAMEORIGIN"
         X-Content-Type-Options "nosniff"
         -Server
